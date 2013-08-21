@@ -55,3 +55,8 @@ rbenv::compile { $ruby_version:
     user => "vagrant",
     global => true
 }
+
+file { "/home/vagrant/database.yml":
+    ensure => "file",
+    source => "/vagrant/database.yml"
+}
