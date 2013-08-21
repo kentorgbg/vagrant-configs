@@ -17,6 +17,11 @@ package { [ "vim",
     ensure => installed
 }
 
+class { "locales":
+  default_value => "en_US.UTF-8",
+  available     => [ "en_US.UTF-8 UTF-8", "sv_SE.UTF-8 UTF-8" ]
+} ->
+
 apt::ppa { "ppa:pitti/postgresql":
 } ->
 
@@ -26,6 +31,17 @@ class { "postgresql":
 class { "postgresql::devel":
 } ->
 class { "postgresql::server":
+    config_hash => {
+        "ipv4acls" => [
+            "host all all 127.0.0.1/32 trust" # Overrides the default md5 auth for all users
+        ]
+    }
+} ->
+
+exec { "Fix encoding for Postgres templates":
+    command => "psql -c \"update pg_database set encoding = pg_char_to_encoding('UTF8') where datistemplate = true;\" postgres",
+    path    => "/usr/bin",
+    user    => "postgres"
 } ->
 
 postgresql::role { "vagrant":
